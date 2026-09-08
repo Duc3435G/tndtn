@@ -1,0 +1,414 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Trắc Nghiệm Đoàn Thanh Niên</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Animate.css -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"/>
+    <style>
+        :root {
+            --cyan: #00ffff;
+            --vio: #8a2be2;
+            --glow: 0 0 15px rgba(0, 255, 255, 0.5);
+        }
+        body {
+            background: conic-gradient(from 0deg, rgba(0,255,255,.25), rgba(138,43,226,.25), rgba(0,255,255,.25)), linear-gradient(135deg, #020c1b, #001e2b);
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            background-attachment: fixed;
+            user-select: none;
+            -webkit-user-select: none;
+            overflow-x: hidden;
+        }
+        /* Hiệu ứng kính lỏng (Liquid Glassmorphism) */
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(20px) saturate(180%);
+            -webkit-backdrop-filter: blur(20px) saturate(180%);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37), inset 0 0 20px rgba(255, 255, 255, 0.1);
+        }
+        .glass-btn {
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.25);
+            box-shadow: 0 4px 16px 0 rgba(0, 0, 0, 0.1);
+        }
+        .glass-btn:hover {
+            background: rgba(255, 255, 255, 0.25);
+            border-color: rgba(255, 255, 255, 0.5);
+        }
+        .animate__animated {
+            animation-duration: 0.4s;
+        }
+        .toast {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: linear-gradient(135deg, var(--cyan), var(--vio));
+            color: #001217;
+            padding: 10px 16px;
+            border-radius: 12px;
+            font-weight: 800;
+            display: none;
+            z-index: 5;
+            box-shadow: var(--glow);
+        }
+        #galaxy {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 0;
+            pointer-events: none;
+        }
+        /* Màn hình Loading */
+        #loading-screen {
+            position: fixed;
+            inset: 0;
+            background: #020c1b;
+            z-index: 100;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            transition: opacity 0.6s ease, visibility 0.6s ease;
+        }
+        .spinner {
+            width: 50px;
+            height: 50px;
+            border: 3px solid rgba(0, 255, 255, 0.2);
+            border-top-color: var(--cyan);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        /* Hiệu ứng gõ phím cho chữ Made by Lucas ở màn hình loading */
+        .typing-text {
+            border-right: 2px solid var(--cyan);
+            white-space: nowrap;
+            animation: blink-caret 0.75s step-end infinite;
+        }
+        @keyframes blink-caret {
+            from, to { border-color: transparent }
+            50% { border-color: var(--cyan); }
+        }
+        /* Hiệu ứng nháy 3 dấu chấm tuần tự */
+        .loading-dots .dot {
+            opacity: 0.2;
+            animation: dotBlink 1.4s infinite ease-in-out both;
+        }
+        .loading-dots .dot:nth-child(1) {
+            animation-delay: 0s;
+        }
+        .loading-dots .dot:nth-child(2) {
+            animation-delay: 0.2s;
+        }
+        .loading-dots .dot:nth-child(3) {
+            animation-delay: 0.4s;
+        }
+        @keyframes dotBlink {
+            0%, 80%, 100% { 
+                opacity: 0.2; 
+                transform: scale(1);
+            }
+            40% { 
+                opacity: 1; 
+                transform: scale(1.2);
+            }
+        }
+    </style>
+</head>
+<body class="min-h-screen flex items-center justify-center p-4 relative" id="avatar">
+
+    <!-- Màn hình Loading (đợi 3s) -->
+    <div id="loading-screen">
+        <div class="spinner mb-4"></div>
+        <div class="text-white font-medium text-lg tracking-wider mb-3 flex items-center justify-center">
+            <span>Chờ xíu</span>
+            <span class="loading-dots ml-0.5">
+                <span class="dot">.</span><span class="dot">.</span><span class="dot">.</span>
+            </span>
+        </div>
+        <div class="h-6 text-cyan-300 font-semibold text-sm tracking-widest drop-shadow">
+            <span class="typing-text" id="typing-signature"></span>
+        </div>
+    </div>
+
+    <canvas id="galaxy"></canvas>
+    <div id="toast" class="toast">Thông báo</div>
+
+    <div class="flex flex-col items-center w-full max-w-xl relative z-10">
+        <div id="app" class="w-full glass-panel rounded-3xl shadow-2xl p-6 md:p-8 animate__animated animate__fadeIn">
+            <!-- Khu vực hiển thị câu hỏi -->
+            <div id="quiz-container">
+                <h2 id="question-text" class="text-xl md:text-2xl font-bold text-white drop-shadow-md mb-6 min-h-[4rem] transition-all"></h2>
+
+                <div id="options-container" class="space-y-4">
+                    <!-- Các nút đáp án render qua JS -->
+                </div>
+            </div>
+
+            <!-- Khu vực hoàn thành -->
+            <div id="result-container" class="hidden text-center py-8 animate__animated animate__zoomIn">
+                <h2 class="text-3xl font-bold text-white drop-shadow-md mb-4">Hoàn thành xuất sắc! 🎉</h2>
+                <p class="text-lg text-white/90 drop-shadow mb-6">Bạn đã trả lời đúng tất cả các câu hỏi tìm hiểu về Đoàn Thanh Niên.</p>
+                <button onclick="restartQuiz()" class="glass-btn text-white font-bold py-3 px-8 rounded-xl shadow-lg transition duration-300 transform hover:scale-105 active:scale-95">
+                    Làm lại từ đầu
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Chữ Made by Lucas bé xíu ở góc dưới bên phải -->
+    <div class="fixed bottom-2 right-3 z-20 text-[10px] text-white/40 tracking-wider font-mono pointer-events-none select-none">
+        made by lucas
+    </div>
+
+    <script>
+        // Galaxy background script
+        const cvs = document.getElementById('galaxy'), ctx = cvs.getContext('2d');
+        let W, H, stars = [], meteors = []; 
+        function size() { W = cvs.width = innerWidth; H = cvs.height = innerHeight; }
+        function makeStars(n) { stars = Array.from({ length: n }, () => ({ x: Math.random() * W, y: Math.random() * H, r: Math.random() * 1.5 + .2, v: Math.random() * 0.25 + 0.08 })); }
+        
+        window.addEventListener('resize', () => { size(); makeStars(Math.floor((W * H) / 4000)); });
+        size();
+        makeStars(Math.floor((W * H) / 4000));
+
+        function draw() {
+            ctx.clearRect(0, 0, W, H);
+            const grd = ctx.createRadialGradient(W * .7, H * .3, 0, W * .7, H * .3, Math.max(W, H) * .8); 
+            grd.addColorStop(0, 'rgba(0,255,255,.06)'); 
+            grd.addColorStop(1, 'transparent'); 
+            ctx.fillStyle = grd; 
+            ctx.fillRect(0, 0, W, H);
+            
+            ctx.fillStyle = '#fff'; 
+            for (const s of stars) { 
+                s.y += s.v; 
+                if (s.y > H) { s.y = 0; s.x = Math.random() * W; } 
+                ctx.beginPath(); 
+                ctx.arc(s.x, s.y, s.r, 0, Math.PI * 2); 
+                ctx.fill(); 
+            }
+            
+            ctx.strokeStyle = getComputedStyle(document.documentElement).getPropertyValue('--cyan'); 
+            ctx.lineWidth = 1.6;
+            for (let i = meteors.length; i--;) { 
+                const m = meteors[i]; 
+                ctx.beginPath(); 
+                ctx.moveTo(m.x, m.y); 
+                ctx.lineTo(m.x - m.l * .6, m.y + m.l); 
+                ctx.stroke(); 
+                m.x += m.v * .35; 
+                m.y += m.v; 
+                if (m.y > H) meteors.splice(i, 1); 
+            }
+            if (Math.random() < 0.015) meteors.push({ x: Math.random() * W, y: 0, l: Math.random() * 90 + 40, v: Math.random() * 4 + 5 });
+            requestAnimationFrame(draw);
+        }
+        draw();
+
+        // Hiệu ứng gõ phím cho Made by Lucas ở màn hình loading
+        function typeWriter() {
+            const text = "Made by Lucas";
+            const element = document.getElementById("typing-signature");
+            let i = 0;
+            function typing() {
+                if (i < text.length) {
+                    element.innerHTML += text.charAt(i);
+                    i++;
+                    setTimeout(typing, 100);
+                }
+            }
+            typing();
+        }
+
+        // Bắt đầu chạy hiệu ứng gõ chữ và đặt thời gian chờ loading đúng 3 giây (3000ms)
+        window.addEventListener('load', () => {
+            typeWriter();
+            setTimeout(() => {
+                const loadingScreen = document.getElementById('loading-screen');
+                loadingScreen.style.opacity = '0';
+                loadingScreen.style.visibility = 'hidden';
+            }, 3000);
+        });
+
+        // Hiệu ứng spawnHeart khi click vào avatar
+        const avatar = document.getElementById('avatar');
+        avatar.addEventListener('click', (e) => {
+            if(e.target.closest('#app')) return;
+            for (let i = 0; i < 7; i++) spawnHeart(e.clientX, e.clientY);
+        });
+
+        function spawnHeart(x, y) {
+            const el = document.createElement('div'); 
+            el.textContent = '💖'; 
+            el.style.position = 'fixed'; 
+            el.style.left = x + 'px'; 
+            el.style.top = y + 'px'; 
+            el.style.pointerEvents = 'none';
+            el.style.zIndex = '999';
+            const fs = 14 + Math.random() * 12; 
+            el.style.fontSize = fs + 'px'; 
+            el.style.opacity = 1;
+            const dx = (Math.random() - .5) * 60, dy = -(30 + Math.random() * 60); 
+            const rot = (Math.random() - .5) * 60;
+            document.body.appendChild(el); 
+            const t0 = performance.now();
+            function step(t) { 
+                const k = Math.min(1, (t - t0) / 900); 
+                el.style.transform = `translate(${dx * k}px, ${dy * k}px) rotate(${rot * k}deg)`; 
+                el.style.opacity = (1 - k).toFixed(2); 
+                if (k < 1) requestAnimationFrame(step); 
+                else el.remove(); 
+            }
+            requestAnimationFrame(step);
+        }
+
+        const questions = [
+            {
+                question: "Câu 1: Đoàn Thanh niên Cộng sản Hồ Chí Minh được thành lập vào ngày tháng năm nào?",
+                options: { a: "26/03/1930", b: "26/03/1931", c: "19/05/1941", d: "22/12/1944" },
+                correct: "b"
+            },
+            {
+                question: "Câu 2: Nhạc sĩ nào là tác giả của bài 'Đoàn ca' (Thanh niên làm theo lời Bác)?",
+                options: { a: "Văn Cao", b: "Lưu Hữu Phước", c: "Hoàng Hòa", d: "Phạm Tuyên" },
+                correct: "c"
+            },
+            {
+                question: "Câu 3: Đâu là độ tuổi quy định để kết nạp Đoàn viên mới?",
+                options: { a: "Từ đủ 14 tuổi đến 25 tuổi", b: "Từ đủ 15 tuổi đến 28 tuổi", c: "Từ đủ 16 tuổi đến 30 tuổi", d: "Từ đủ 18 tuổi đến 35 tuổi" },
+                correct: "c"
+            },
+            {
+                question: "Câu 4: Tác giả của chiếc Huy hiệu Đoàn (hình cánh tay cuồn cuộn cầm cờ Tổ quốc tiến lên) là ai?",
+                options: { a: "Họa sĩ Huỳnh Văn Gẩm", b: "Họa sĩ Bùi Xuân Phái", c: "Họa sĩ Tô Ngọc Vân", d: "Họa sĩ Trần Văn Cẩn" },
+                correct: "a"
+            },
+            {
+                question: "Câu 5: Tháng nào trong năm được Trung ương Đoàn chọn làm 'Tháng Thanh niên'?",
+                options: { a: "Tháng 1", b: "Tháng 3", c: "Tháng 5", d: "Tháng 7" },
+                correct: "b"
+            },
+            {
+                question: "Câu 6: Ai là người Đoàn viên đầu tiên đã anh dũng hy sinh với câu nói nổi tiếng: 'Con đường của thanh niên chỉ có thể là con đường cách mạng, chứ không thể có con đường nào khác'?",
+                options: { a: "Võ Thị Sáu", b: "Lý Tự Trọng", c: "Kim Đồng", d: "Nguyễn Văn Trỗi" },
+                correct: "b"
+            },
+            {
+                question: "Câu 7: Điền từ còn thiếu vào câu khẩu hiệu hành động truyền thống của Đoàn: 'Đâu cần thanh niên có, việc gì ...... có thanh niên'.",
+                options: { a: "Nặng", b: "Nguy hiểm", c: "Khó", d: "Khổ" },
+                correct: "c"
+            },
+            {
+                question: "Câu 8: Trang phục áo xanh của Đoàn Thanh niên mang ý nghĩa biểu tượng gì lớn nhất?",
+                options: { a: "Sự hòa bình và độc lập", b: "Niềm đam mê và sức mạnh thể chất", c: "Khát vọng, hoài bão lớn và sự cống hiến bền bỉ của tuổi trẻ", d: "Sự may mắn và tài lộc" },
+                correct: "c"
+            },
+            {
+                question: "Câu 9: Khi lên bao nhiêu tuổi thì Đoàn viên sẽ trưởng thành Đoàn (nếu không giữ chức vụ lãnh đạo trong tổ chức Đoàn)?",
+                options: { a: "Hết 30 tuổi", b: "Hết 35 tuổi", c: "Hết 40 tuổi", d: "Hết 45 tuổi" },
+                correct: "b"
+            },
+            {
+                question: "Câu 10: 'Chiến dịch Thanh niên tình nguyện Hè' thường bao gồm những chiến dịch/chương trình nhỏ nào sau đây?",
+                options: { a: "Mùa hè xanh, Tiếp sức mùa thi", b: "Hoa phượng đỏ, Kỳ nghỉ hồng", c: "Hành quân xanh", d: "Tất cả các phương án trên" },
+                correct: "d"
+            },
+            {
+                question: "Câu 11: Huy hiệu Đoàn Thanh niên được đeo ở vị trí nào trên áo là đúng quy chuẩn nhất?",
+                options: { a: "Trên túi áo ngực bên trái (gần vị trí trái tim)", b: "Trên cổ áo bên trái", c: "Trên túi áo ngực bên phải", d: "Đeo ở vị trí nào cũng được miễn là dễ nhìn thấy" },
+                correct: "a"
+            },
+            {
+                question: "Câu 12: Đội Thiếu niên Tiền phong Hồ Chí Minh do tổ chức nào trực tiếp phụ trách và hướng dẫn?",
+                options: { a: "Bộ Giáo dục và Đào tạo", b: "Hội Khuyến học Việt Nam", c: "Đoàn Thanh niên Cộng sản Hồ Chí Minh", d: "Hội Liên hiệp Thanh niên Việt Nam" },
+                correct: "c"
+            }
+        ];
+
+        let currentQuestions = [];
+
+        function startQuiz() {
+            currentQuestions = [...questions];
+            document.getElementById('result-container').classList.add('hidden');
+            document.getElementById('quiz-container').classList.remove('hidden');
+            loadQuestion();
+        }
+
+        function loadQuestion() {
+            if (currentQuestions.length === 0) {
+                showResult();
+                return;
+            }
+
+            const q = currentQuestions[0];
+            const questionEl = document.getElementById('question-text');
+            const optionsEl = document.getElementById('options-container');
+
+            questionEl.classList.remove('animate__fadeIn');
+            void questionEl.offsetWidth; 
+            questionEl.classList.add('animate__fadeIn');
+            questionEl.innerText = q.question;
+
+            optionsEl.innerHTML = '';
+            for (const [key, value] of Object.entries(q.options)) {
+                const btn = document.createElement('button');
+                btn.className = "option-btn glass-btn w-full text-left p-4 rounded-xl font-medium text-white drop-shadow transition-all duration-200 transform hover:scale-[1.01] active:scale-[0.99] shadow-sm animate__animated animate__fadeInUp";
+                btn.innerHTML = `<span class="font-bold uppercase mr-2 text-cyan-300">${key}.</span> ${value}`;
+                
+                btn.onclick = (e) => {
+                    e.stopPropagation();
+                    selectAnswer(key, btn);
+                };
+                optionsEl.appendChild(btn);
+            }
+        }
+
+        function selectAnswer(selectedKey, btnElement) {
+            const currentQ = currentQuestions[0];
+
+            if (selectedKey === currentQ.correct) {
+                btnElement.className = "option-btn w-full text-left p-4 rounded-xl font-medium text-white shadow-sm bg-cyan-600/80 border-cyan-400 backdrop-blur-md animate__animated animate__pulse";
+
+                const allButtons = document.querySelectorAll('.option-btn');
+                allButtons.forEach(btn => btn.disabled = true);
+
+                setTimeout(() => {
+                    currentQuestions.shift(); 
+                    loadQuestion();
+                }, 1000);
+
+            } else {
+                btnElement.className = "option-btn w-full text-left p-4 rounded-xl font-medium text-white shadow-sm bg-red-600/80 border-red-400 backdrop-blur-md animate__animated animate__shakeX";
+                btnElement.style.animationDuration = '0.9s';
+                btnElement.disabled = true; 
+            }
+        }
+
+        function showResult() {
+            document.getElementById('quiz-container').classList.add('hidden');
+            const resultContainer = document.getElementById('result-container');
+            resultContainer.classList.remove('hidden');
+        }
+
+        function restartQuiz() {
+            startQuiz();
+        }
+
+        startQuiz();
+    </script>
+</body>
+</html>
