@@ -53,7 +53,7 @@
             transform: translateX(-50%);
             background: linear-gradient(135deg, var(--cyan), var(--vio));
             color: #001217;
-            padding: 10px 16px;
+            padding: 12px 20px;
             border-radius: 12px;
             font-weight: 800;
             display: none;
@@ -82,9 +82,9 @@
             transition: opacity 0.6s ease, visibility 0.6s ease;
         }
         .spinner {
-            width: 50px;
-            height: 50px;
-            border: 3px solid rgba(0, 255, 255, 0.2);
+            width: 60px;
+            height: 60px;
+            border: 4px solid rgba(0, 255, 255, 0.2);
             border-top-color: var(--cyan);
             border-radius: 50%;
             animation: spin 1s linear infinite;
@@ -128,49 +128,49 @@
         }
     </style>
 </head>
-<body class="min-h-screen flex items-center justify-center p-4 relative" id="avatar">
+<body class="min-h-screen flex items-center justify-center p-4 md:p-6 relative" id="avatar">
 
     <!-- Màn hình Loading (đợi 3s) -->
     <div id="loading-screen">
-        <div class="spinner mb-4"></div>
-        <div class="text-white font-medium text-lg tracking-wider mb-3 flex items-center justify-center">
+        <div class="spinner mb-6"></div>
+        <div class="text-white font-medium text-xl md:text-2xl tracking-wider mb-3 flex items-center justify-center">
             <span>Chờ xíu</span>
             <span class="loading-dots ml-0.5">
                 <span class="dot">.</span><span class="dot">.</span><span class="dot">.</span>
             </span>
         </div>
-        <div class="h-6 text-cyan-300 font-semibold text-sm tracking-widest drop-shadow">
+        <div class="h-8 text-cyan-300 font-semibold text-base md:text-lg tracking-widest drop-shadow">
             <span class="typing-text" id="typing-signature"></span>
         </div>
     </div>
 
     <canvas id="galaxy"></canvas>
-    <div id="toast" class="toast">Thông báo</div>
+    <div id="toast" class="toast text-base md:text-lg">Thông báo</div>
 
-    <div class="flex flex-col items-center w-full max-w-xl relative z-10">
-        <div id="app" class="w-full glass-panel rounded-3xl shadow-2xl p-6 md:p-8 animate__animated animate__fadeIn">
+    <div class="flex flex-col items-center w-full max-w-2xl relative z-10">
+        <div id="app" class="w-full glass-panel rounded-3xl shadow-2xl p-6 md:p-10 animate__animated animate__fadeIn">
             <!-- Khu vực hiển thị câu hỏi -->
             <div id="quiz-container">
-                <h2 id="question-text" class="text-xl md:text-2xl font-bold text-white drop-shadow-md mb-6 min-h-[4rem] transition-all"></h2>
+                <h2 id="question-text" class="text-2xl md:text-3xl font-bold text-white leading-relaxed drop-shadow-md mb-8 min-h-[5rem] transition-all"></h2>
 
-                <div id="options-container" class="space-y-4">
+                <div id="options-container" class="space-y-4 md:space-y-5">
                     <!-- Các nút đáp án render qua JS -->
                 </div>
             </div>
 
             <!-- Khu vực hoàn thành -->
-            <div id="result-container" class="hidden text-center py-8 animate__animated animate__zoomIn">
-                <h2 class="text-3xl font-bold text-white drop-shadow-md mb-4">Hoàn thành xuất sắc! 🎉</h2>
-                <p class="text-lg text-white/90 drop-shadow mb-6">Bạn đã trả lời đúng tất cả các câu hỏi tìm hiểu về Đoàn Thanh Niên.</p>
-                <button onclick="restartQuiz()" class="glass-btn text-white font-bold py-3 px-8 rounded-xl shadow-lg transition duration-300 transform hover:scale-105 active:scale-95">
+            <div id="result-container" class="hidden text-center py-10 animate__animated animate__zoomIn">
+                <h2 class="text-4xl md:text-5xl font-bold text-white drop-shadow-md mb-6">Hoàn thành xuất sắc! 🎉</h2>
+                <p class="text-xl md:text-2xl text-white/90 drop-shadow mb-8 leading-relaxed">Bạn đã trả lời đúng tất cả các câu hỏi tìm hiểu về Đoàn Thanh Niên.</p>
+                <button onclick="restartQuiz()" class="glass-btn text-white font-bold text-lg md:text-xl py-4 px-10 rounded-2xl shadow-lg transition duration-300 transform hover:scale-105 active:scale-95">
                     Làm lại từ đầu
                 </button>
             </div>
         </div>
     </div>
 
-    <!-- Chữ Made by Lucas bé xíu ở góc dưới bên phải -->
-    <div class="fixed bottom-2 right-3 z-20 text-[10px] text-white/40 tracking-wider font-mono pointer-events-none select-none">
+    <!-- Chữ Made by Lucas ở góc dưới bên phải -->
+    <div class="fixed bottom-3 right-4 z-20 text-xs md:text-sm text-white/40 tracking-wider font-mono pointer-events-none select-none">
         made by lucas
     </div>
 
@@ -259,7 +259,7 @@
             el.style.top = y + 'px'; 
             el.style.pointerEvents = 'none';
             el.style.zIndex = '999';
-            const fs = 14 + Math.random() * 12; 
+            const fs = 18 + Math.random() * 14; 
             el.style.fontSize = fs + 'px'; 
             el.style.opacity = 1;
             const dx = (Math.random() - .5) * 60, dy = -(30 + Math.random() * 60); 
@@ -366,8 +366,8 @@
             optionsEl.innerHTML = '';
             for (const [key, value] of Object.entries(q.options)) {
                 const btn = document.createElement('button');
-                btn.className = "option-btn glass-btn w-full text-left p-4 rounded-xl font-medium text-white drop-shadow transition-all duration-200 transform hover:scale-[1.01] active:scale-[0.99] shadow-sm animate__animated animate__fadeInUp";
-                btn.innerHTML = `<span class="font-bold uppercase mr-2 text-cyan-300">${key}.</span> ${value}`;
+                btn.className = "option-btn glass-btn w-full text-left p-5 md:p-6 rounded-2xl font-medium text-lg md:text-xl text-white drop-shadow transition-all duration-200 transform hover:scale-[1.01] active:scale-[0.99] shadow-sm animate__animated animate__fadeInUp";
+                btn.innerHTML = `<span class="font-bold uppercase mr-3 text-cyan-300 text-xl md:text-2xl">${key}.</span> ${value}`;
                 
                 btn.onclick = (e) => {
                     e.stopPropagation();
@@ -381,7 +381,7 @@
             const currentQ = currentQuestions[0];
 
             if (selectedKey === currentQ.correct) {
-                btnElement.className = "option-btn w-full text-left p-4 rounded-xl font-medium text-white shadow-sm bg-cyan-600/80 border-cyan-400 backdrop-blur-md animate__animated animate__pulse";
+                btnElement.className = "option-btn w-full text-left p-5 md:p-6 rounded-2xl font-medium text-lg md:text-xl text-white shadow-sm bg-cyan-600/80 border-cyan-400 backdrop-blur-md animate__animated animate__pulse";
 
                 const allButtons = document.querySelectorAll('.option-btn');
                 allButtons.forEach(btn => btn.disabled = true);
@@ -392,7 +392,7 @@
                 }, 1000);
 
             } else {
-                btnElement.className = "option-btn w-full text-left p-4 rounded-xl font-medium text-white shadow-sm bg-red-600/80 border-red-400 backdrop-blur-md animate__animated animate__shakeX";
+                btnElement.className = "option-btn w-full text-left p-5 md:p-6 rounded-2xl font-medium text-lg md:text-xl text-white shadow-sm bg-red-600/80 border-red-400 backdrop-blur-md animate__animated animate__shakeX";
                 btnElement.style.animationDuration = '0.9s';
                 btnElement.disabled = true; 
             }
