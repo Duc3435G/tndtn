@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Trắc Nghiệm Đoàn Thanh Niên</title>
+    <title>Trắc Nghiệm Kiến Thức Tổng Hợp</title>
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Animate.css -->
@@ -22,9 +22,9 @@
             background-attachment: fixed;
             user-select: none;
             -webkit-user-select: none;
-            overflow-x: hidden;
+            overflow: hidden;
         }
-        /* Hiệu ứng kính lỏng (Liquid Glassmorphism) */
+        /* Glassmorphism */
         .glass-panel {
             background: rgba(255, 255, 255, 0.1);
             backdrop-filter: blur(20px) saturate(180%);
@@ -45,20 +45,6 @@
         }
         .animate__animated {
             animation-duration: 0.4s;
-        }
-        .toast {
-            position: fixed;
-            bottom: 20px;
-            left: 50%;
-            transform: translateX(-50%);
-            background: linear-gradient(135deg, var(--cyan), var(--vio));
-            color: #001217;
-            padding: 12px 20px;
-            border-radius: 12px;
-            font-weight: 800;
-            display: none;
-            z-index: 5;
-            box-shadow: var(--glow);
         }
         #galaxy {
             position: fixed;
@@ -92,45 +78,50 @@
         @keyframes spin {
             to { transform: rotate(360deg); }
         }
-        /* Hiệu ứng gõ phím cho chữ Made by Lucas ở màn hình loading */
-        .typing-text {
-            border-right: 2px solid var(--cyan);
-            white-space: nowrap;
-            animation: blink-caret 0.75s step-end infinite;
+        /* Typing effect cursor */
+        .typing-container {
+            display: inline-flex;
+            align-items: center;
         }
-        @keyframes blink-caret {
-            from, to { border-color: transparent }
-            50% { border-color: var(--cyan); }
+        .cursor {
+            display: inline-block;
+            width: 8px;
+            height: 1.2em;
+            background-color: var(--cyan);
+            margin-left: 4px;
+            animation: blink 0.7s infinite;
         }
-        /* Hiệu ứng nháy 3 dấu chấm tuần tự */
+        @keyframes blink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0; }
+        }
+        /* Hiệu ứng nháy 3 dấu chấm */
         .loading-dots .dot {
             opacity: 0.2;
             animation: dotBlink 1.4s infinite ease-in-out both;
         }
-        .loading-dots .dot:nth-child(1) {
-            animation-delay: 0s;
-        }
-        .loading-dots .dot:nth-child(2) {
-            animation-delay: 0.2s;
-        }
-        .loading-dots .dot:nth-child(3) {
-            animation-delay: 0.4s;
-        }
+        .loading-dots .dot:nth-child(1) { animation-delay: 0s; }
+        .loading-dots .dot:nth-child(2) { animation-delay: 0.2s; }
+        .loading-dots .dot:nth-child(3) { animation-delay: 0.4s; }
         @keyframes dotBlink {
-            0%, 80%, 100% { 
-                opacity: 0.2; 
-                transform: scale(1);
-            }
-            40% { 
-                opacity: 1; 
-                transform: scale(1.2);
-            }
+            0%, 80%, 100% { opacity: 0.2; transform: scale(1); }
+            40% { opacity: 1; transform: scale(1.2); }
+        }
+        /* Firework Canvas Container */
+        #firework-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 50;
         }
     </style>
 </head>
-<body class="min-h-screen flex items-center justify-center p-4 md:p-6 relative" id="avatar">
+<body class="min-h-screen flex items-center justify-center p-4 md:p-6 relative">
 
-    <!-- Màn hình Loading (đợi 3s) -->
+    <!-- Màn hình Loading -->
     <div id="loading-screen">
         <div class="spinner mb-6"></div>
         <div class="text-white font-medium text-xl md:text-2xl tracking-wider mb-3 flex items-center justify-center">
@@ -139,31 +130,36 @@
                 <span class="dot">.</span><span class="dot">.</span><span class="dot">.</span>
             </span>
         </div>
-        <div class="h-8 text-cyan-300 font-semibold text-base md:text-lg tracking-widest drop-shadow">
-            <span class="typing-text" id="typing-signature"></span>
+        <div class="h-8 text-cyan-300 font-semibold text-base md:text-lg tracking-widest drop-shadow flex items-center">
+            <span class="typing-container">
+                <span id="typing-signature"></span>
+                <span class="cursor"></span>
+            </span>
         </div>
     </div>
 
     <canvas id="galaxy"></canvas>
-    <div id="toast" class="toast text-base md:text-lg">Thông báo</div>
+    <canvas id="firework-canvas"></canvas>
 
     <div class="flex flex-col items-center w-full max-w-2xl relative z-10">
         <div id="app" class="w-full glass-panel rounded-3xl shadow-2xl p-6 md:p-10 animate__animated animate__fadeIn">
             <!-- Khu vực hiển thị câu hỏi -->
             <div id="quiz-container">
-                <h2 id="question-text" class="text-2xl md:text-3xl font-bold text-white leading-relaxed drop-shadow-md mb-8 min-h-[5rem] transition-all"></h2>
+                <h2 id="question-text" class="text-xl md:text-2xl font-bold text-white leading-relaxed drop-shadow-md mb-6 min-h-[4rem] transition-all"></h2>
 
-                <div id="options-container" class="space-y-4 md:space-y-5">
+                <div id="options-container" class="space-y-3 md:space-y-4">
                     <!-- Các nút đáp án render qua JS -->
                 </div>
             </div>
 
             <!-- Khu vực hoàn thành -->
-            <div id="result-container" class="hidden text-center py-10 animate__animated animate__zoomIn">
+            <div id="result-container" class="hidden text-center py-8 animate__animated animate__zoomIn">
                 <h2 class="text-4xl md:text-5xl font-bold text-white drop-shadow-md mb-6">Hoàn thành xuất sắc! 🎉</h2>
-                <p class="text-xl md:text-2xl text-white/90 drop-shadow mb-8 leading-relaxed">Bạn đã trả lời đúng tất cả các câu hỏi tìm hiểu về Đoàn Thanh Niên.</p>
-                <button onclick="restartQuiz()" class="glass-btn text-white font-bold text-lg md:text-xl py-4 px-10 rounded-2xl shadow-lg transition duration-300 transform hover:scale-105 active:scale-95">
-                    Làm lại từ đầu
+                <p class="text-lg md:text-xl text-white/90 drop-shadow mb-8 leading-relaxed">
+                    Bạn đã trả lời đúng tất cả các câu hỏi kiến thức tổng hợp.
+                </p>
+                <button onclick="restartQuiz()" class="glass-btn text-white font-bold text-lg md:text-xl py-4 px-10 rounded-2xl shadow-lg transition duration-300 transform hover:scale-105 active:scale-95 border-cyan-400/50 hover:border-cyan-300">
+                    Làm lại từ đầu 🔄
                 </button>
             </div>
         </div>
@@ -175,7 +171,95 @@
     </div>
 
     <script>
-        // Galaxy background script
+        /* =========================================================
+           1. WEB AUDIO API SYNTHESIZER
+           ========================================================= */
+        class SoundFX {
+            constructor() {
+                this.ctx = null;
+            }
+            init() {
+                if (!this.ctx) {
+                    this.ctx = new (window.AudioContext || window.webkitAudioContext)();
+                }
+                if (this.ctx.state === 'suspended') {
+                    this.ctx.resume();
+                }
+            }
+            playClick() {
+                this.init();
+                const osc = this.ctx.createOscillator();
+                const gain = this.ctx.createGain();
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(600, this.ctx.currentTime);
+                osc.frequency.exponentialRampToValueAtTime(200, this.ctx.currentTime + 0.04);
+                gain.gain.setValueAtTime(0.15, this.ctx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.01, this.ctx.currentTime + 0.04);
+                osc.connect(gain);
+                gain.connect(this.ctx.destination);
+                osc.start();
+                osc.stop(this.ctx.currentTime + 0.04);
+            }
+            playCorrect() {
+                this.init();
+                const now = this.ctx.currentTime;
+                const freqs = [523.25, 659.25, 783.99, 1046.50];
+                freqs.forEach((freq, i) => {
+                    const osc = this.ctx.createOscillator();
+                    const gain = this.ctx.createGain();
+                    osc.type = 'triangle';
+                    osc.frequency.setValueAtTime(freq, now + i * 0.08);
+                    gain.gain.setValueAtTime(0.2, now + i * 0.08);
+                    gain.gain.exponentialRampToValueAtTime(0.001, now + i * 0.08 + 0.3);
+                    osc.connect(gain);
+                    gain.connect(this.ctx.destination);
+                    osc.start(now + i * 0.08);
+                    osc.stop(now + i * 0.08 + 0.3);
+                });
+            }
+            playWrong() {
+                this.init();
+                const now = this.ctx.currentTime;
+                const freqs = [180, 130];
+                freqs.forEach((freq, i) => {
+                    const osc = this.ctx.createOscillator();
+                    const gain = this.ctx.createGain();
+                    osc.type = 'sawtooth';
+                    osc.frequency.setValueAtTime(freq, now + i * 0.12);
+                    gain.gain.setValueAtTime(0.2, now + i * 0.12);
+                    gain.gain.exponentialRampToValueAtTime(0.01, now + i * 0.12 + 0.2);
+                    osc.connect(gain);
+                    gain.connect(this.ctx.destination);
+                    osc.start(now + i * 0.12);
+                    osc.stop(now + i * 0.12 + 0.2);
+                });
+            }
+            playVictory() {
+                this.init();
+                const now = this.ctx.currentTime;
+                const notes = [
+                    { f: 523.25, t: 0 }, { f: 659.25, t: 0.12 }, { f: 783.99, t: 0.24 },
+                    { f: 1046.50, t: 0.36 }, { f: 880, t: 0.5 }, { f: 1046.50, t: 0.7 }
+                ];
+                notes.forEach(note => {
+                    const osc = this.ctx.createOscillator();
+                    const gain = this.ctx.createGain();
+                    osc.type = 'triangle';
+                    osc.frequency.setValueAtTime(note.f, now + note.t);
+                    gain.gain.setValueAtTime(0.25, now + note.t);
+                    gain.gain.exponentialRampToValueAtTime(0.001, now + note.t + 0.4);
+                    osc.connect(gain);
+                    gain.connect(this.ctx.destination);
+                    osc.start(now + note.t);
+                    osc.stop(now + note.t + 0.4);
+                });
+            }
+        }
+        const sfx = new SoundFX();
+
+        /* =========================================================
+           2. GALAXY BACKGROUND ANIMATION
+           ========================================================= */
         const cvs = document.getElementById('galaxy'), ctx = cvs.getContext('2d');
         let W, H, stars = [], meteors = []; 
         function size() { W = cvs.width = innerWidth; H = cvs.height = innerHeight; }
@@ -185,7 +269,7 @@
         size();
         makeStars(Math.floor((W * H) / 4000));
 
-        function draw() {
+        function drawGalaxy() {
             ctx.clearRect(0, 0, W, H);
             const grd = ctx.createRadialGradient(W * .7, H * .3, 0, W * .7, H * .3, Math.max(W, H) * .8); 
             grd.addColorStop(0, 'rgba(0,255,255,.06)'); 
@@ -215,26 +299,89 @@
                 if (m.y > H) meteors.splice(i, 1); 
             }
             if (Math.random() < 0.015) meteors.push({ x: Math.random() * W, y: 0, l: Math.random() * 90 + 40, v: Math.random() * 4 + 5 });
-            requestAnimationFrame(draw);
+            requestAnimationFrame(drawGalaxy);
         }
-        draw();
+        drawGalaxy();
 
-        // Hiệu ứng gõ phím cho Made by Lucas ở màn hình loading
+        /* =========================================================
+           3. FIREWORKS EFFECT (Khi chọn đúng đáp án)
+           ========================================================= */
+        const fCvs = document.getElementById('firework-canvas');
+        const fCtx = fCvs.getContext('2d');
+        let fW, fH, fireworks = [];
+
+        function resizeFireworkCanvas() {
+            fW = fCvs.width = window.innerWidth;
+            fH = fCvs.height = window.innerHeight;
+        }
+        window.addEventListener('resize', resizeFireworkCanvas);
+        resizeFireworkCanvas();
+
+        function createFireworks(originX, originY) {
+            const colors = ['#00ffff', '#8a2be2', '#ff00ff', '#ffff00', '#00ff00', '#ff4500'];
+            const particleCount = 45;
+            for (let i = 0; i < particleCount; i++) {
+                const angle = Math.random() * Math.PI * 2;
+                const speed = 2 + Math.random() * 6;
+                fireworks.push({
+                    x: originX,
+                    y: originY,
+                    vx: Math.cos(angle) * speed,
+                    vy: Math.sin(angle) * speed,
+                    alpha: 1,
+                    decay: 0.015 + Math.random() * 0.02,
+                    color: colors[Math.floor(Math.random() * colors.length)],
+                    size: 2.5 + Math.random() * 2.5
+                });
+            }
+        }
+
+        function updateAndDrawFireworks() {
+            fCtx.clearRect(0, 0, fW, fH);
+            for (let i = fireworks.length - 1; i >= 0; i--) {
+                const p = fireworks[i];
+                p.x += p.vx;
+                p.y += p.vy;
+                p.vy += 0.08; // trọng lực kéo xuống
+                p.alpha -= p.decay;
+
+                if (p.alpha <= 0) {
+                    fireworks.splice(i, 1);
+                    continue;
+                }
+
+                fCtx.save();
+                fCtx.globalAlpha = p.alpha;
+                fCtx.fillStyle = p.color;
+                fCtx.beginPath();
+                fCtx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+                fCtx.fill();
+                fCtx.restore();
+            }
+            requestAnimationFrame(updateAndDrawFireworks);
+        }
+        updateAndDrawFireworks();
+
+        /* =========================================================
+           4. TYPING EFFECT (Chữ gõ phím "Made by Lucas")
+           ========================================================= */
         function typeWriter() {
             const text = "Made by Lucas";
             const element = document.getElementById("typing-signature");
+            element.textContent = "";
             let i = 0;
+            const speed = 100;
+
             function typing() {
                 if (i < text.length) {
-                    element.innerHTML += text.charAt(i);
+                    element.textContent += text.charAt(i);
                     i++;
-                    setTimeout(typing, 100);
+                    setTimeout(typing, speed);
                 }
             }
-            typing();
+            setTimeout(typing, 300);
         }
 
-        // Bắt đầu chạy hiệu ứng gõ chữ và đặt thời gian chờ loading đúng 3 giây (3000ms)
         window.addEventListener('load', () => {
             typeWriter();
             setTimeout(() => {
@@ -244,167 +391,179 @@
             }, 3000);
         });
 
-        // Hiệu ứng spawnHeart khi click vào avatar
-        const avatar = document.getElementById('avatar');
-        avatar.addEventListener('click', (e) => {
-            if(e.target.closest('#app')) return;
-            for (let i = 0; i < 7; i++) spawnHeart(e.clientX, e.clientY);
-        });
-
-        function spawnHeart(x, y) {
-            const el = document.createElement('div'); 
-            el.textContent = '💖'; 
-            el.style.position = 'fixed'; 
-            el.style.left = x + 'px'; 
-            el.style.top = y + 'px'; 
-            el.style.pointerEvents = 'none';
-            el.style.zIndex = '999';
-            const fs = 18 + Math.random() * 14; 
-            el.style.fontSize = fs + 'px'; 
-            el.style.opacity = 1;
-            const dx = (Math.random() - .5) * 60, dy = -(30 + Math.random() * 60); 
-            const rot = (Math.random() - .5) * 60;
-            document.body.appendChild(el); 
-            const t0 = performance.now();
-            function step(t) { 
-                const k = Math.min(1, (t - t0) / 900); 
-                el.style.transform = `translate(${dx * k}px, ${dy * k}px) rotate(${rot * k}deg)`; 
-                el.style.opacity = (1 - k).toFixed(2); 
-                if (k < 1) requestAnimationFrame(step); 
-                else el.remove(); 
-            }
-            requestAnimationFrame(step);
-        }
-
-        const questions = [
+        /* =========================================================
+           5. NGÂN HÀNG CÂU HỎI & LOGIC TRẮC NGHIỆM (12 CÂU)
+           ========================================================= */
+        const rawQuestions = [
             {
-                question: "Câu 1: Đoàn Thanh niên Cộng sản Hồ Chí Minh được thành lập vào ngày tháng năm nào?",
-                options: { a: "26/03/1930", b: "26/03/1931", c: "19/05/1941", d: "22/12/1944" },
-                correct: "b"
+                question: "Quốc gia nào trên thế giới sở hữu quốc kỳ không phải là hình chữ nhật hay hình vuông (mà có dạng hai hình tam giác chồng lên nhau)?",
+                options: ["Bhutan", "Nepal", "Thụy Sĩ", "Sri Lanka"],
+                correct: 1
             },
             {
-                question: "Câu 2: Nhạc sĩ nào là tác giả của bài 'Đoàn ca' (Thanh niên làm theo lời Bác)?",
-                options: { a: "Văn Cao", b: "Lưu Hữu Phước", c: "Hoàng Hòa", d: "Phạm Tuyên" },
-                correct: "c"
+                question: "Quốc kỳ của Canada có hình biểu tượng nổi tiếng của chiếc lá nào ở chính giữa?",
+                options: ["Lá sồi", "Lá phong", "Lá bạch dương", "Lá dâu tằm"],
+                correct: 1
             },
             {
-                question: "Câu 3: Đâu là độ tuổi quy định để kết nạp Đoàn viên mới?",
-                options: { a: "Từ đủ 14 tuổi đến 25 tuổi", b: "Từ đủ 15 tuổi đến 28 tuổi", c: "Từ đủ 16 tuổi đến 30 tuổi", d: "Từ đủ 18 tuổi đến 35 tuổi" },
-                correct: "c"
+                question: "Quốc gia nào được mệnh danh là 'Đất nước Mặt Trời mọc'?",
+                options: ["Hàn Quốc", "Nhật Bản", "Thái Lan", "Trung Quốc"],
+                correct: 1
             },
             {
-                question: "Câu 4: Tác giả của chiếc Huy hiệu Đoàn (hình cánh tay cuồn cuộn cầm cờ Tổ quốc tiến lên) là ai?",
-                options: { a: "Họa sĩ Huỳnh Văn Gẩm", b: "Họa sĩ Bùi Xuân Phái", c: "Họa sĩ Tô Ngọc Vân", d: "Họa sĩ Trần Văn Cẩn" },
-                correct: "a"
+                question: "Lá quốc kỳ nổi tiếng với tên gọi 'Star-Spangled Banner' gồm 50 ngôi sao đại diện cho 50 tiểu bang là quốc kỳ của nước nào?",
+                options: ["Úc", "Vương quốc Anh", "Hợp chủng quốc Hoa Kỳ (Mỹ)", "Brazil"],
+                correct: 2
             },
             {
-                question: "Câu 5: Tháng nào trong năm được Trung ương Đoàn chọn làm 'Tháng Thanh niên'?",
-                options: { a: "Tháng 1", b: "Tháng 3", c: "Tháng 5", d: "Tháng 7" },
-                correct: "b"
+                question: "Quốc gia nào ở Nam Mỹ nổi tiếng là quốc gia duy nhất trên thế giới sử dụng tiếng Bồ Đào Nha làm ngôn ngữ chính thức?",
+                options: ["Argentina", "Colombia", "Chile", "Brazil"],
+                correct: 3
             },
             {
-                question: "Câu 6: Ai là người Đoàn viên đầu tiên đã anh dũng hy sinh với câu nói nổi tiếng: 'Con đường của thanh niên chỉ có thể là con đường cách mạng, chứ không thể có con đường nào khác'?",
-                options: { a: "Võ Thị Sáu", b: "Lý Tự Trọng", c: "Kim Đồng", d: "Nguyễn Văn Trỗi" },
-                correct: "b"
+                question: "Hình ảnh chú chuột túi (Kangaroo) và chim đà điểu sa mạc (Emu) xuất hiện trên quốc huy của quốc gia độc đáo nào?",
+                options: ["Úc (Australia)", "New Zealand", "Nam Phi", "Madagascar"],
+                correct: 0
             },
             {
-                question: "Câu 7: Điền từ còn thiếu vào câu khẩu hiệu hành động truyền thống của Đoàn: 'Đâu cần thanh niên có, việc gì ...... có thanh niên'.",
-                options: { a: "Nặng", b: "Nguy hiểm", c: "Khó", d: "Khổ" },
-                correct: "c"
+                question: "Trong hóa học, bảng hệ thống tuần hoàn các yếu tố hóa học đầu tiên do nhà khoa học nổi tiếng nào người Nga xây dựng nên?",
+                options: ["Dmitri Mendeleev", "Antoine Lavoisier", "Marie Curie", "John Dalton"],
+                correct: 0
             },
             {
-                question: "Câu 8: Trang phục áo xanh của Đoàn Thanh niên mang ý nghĩa biểu tượng gì lớn nhất?",
-                options: { a: "Sự hòa bình và độc lập", b: "Niềm đam mê và sức mạnh thể chất", c: "Khát vọng, hoài bão lớn và sự cống hiến bền bỉ của tuổi trẻ", d: "Sự may mắn và tài lộc" },
-                correct: "c"
+                question: "Vào năm 1954, chiến thắng lịch sử nào của quân và dân ta đã 'lừng lẫy năm châu, chấn động địa cầu', kết thúc cuộc kháng chiến chống Pháp?",
+                options: ["Chiến dịch Điện Biên Phủ", "Chiến dịch Hồ Chí Minh", "Chiến dịch Việt Bắc", "Chiến dịch Biên giới"],
+                correct: 0
             },
             {
-                question: "Câu 9: Khi lên bao nhiêu tuổi thì Đoàn viên sẽ trưởng thành Đoàn (nếu không giữ chức vụ lãnh đạo trong tổ chức Đoàn)?",
-                options: { a: "Hết 30 tuổi", b: "Hết 35 tuổi", c: "Hết 40 tuổi", d: "Hết 45 tuổi" },
-                correct: "b"
+                question: "Tác phẩm tiểu thuyết nổi tiếng 'Đôn Ki-hô-tê' (Don Quixote) - nhà quý tộc tài ba xứ Mancha - là của nhà văn nào?",
+                options: ["Victor Hugo", "Cervantes", "William Shakespeare", "Leo Tolstoy"],
+                correct: 1
             },
             {
-                question: "Câu 10: 'Chiến dịch Thanh niên tình nguyện Hè' thường bao gồm những chiến dịch/chương trình nhỏ nào sau đây?",
-                options: { a: "Mùa hè xanh, Tiếp sức mùa thi", b: "Hoa phượng đỏ, Kỳ nghỉ hồng", c: "Hành quân xanh", d: "Tất cả các phương án trên" },
-                correct: "d"
+                question: "Trong cơ thể con người, chất sắt đóng vai trò quan trọng nhất trong việc cấu tạo nên thành phần nào sau đây?",
+                options: ["Men răng", "Huyết cầu tố (Hemoglobin) trong máu", "Tế bào thần kinh", "Khớp xương"],
+                correct: 1
             },
             {
-                question: "Câu 11: Huy hiệu Đoàn Thanh niên được đeo ở vị trí nào trên áo là đúng quy chuẩn nhất?",
-                options: { a: "Trên túi áo ngực bên trái (gần vị trí trái tim)", b: "Trên cổ áo bên trái", c: "Trên túi áo ngực bên phải", d: "Đeo ở vị trí nào cũng được miễn là dễ nhìn thấy" },
-                correct: "a"
+                question: "Đơn vị đo cường độ dòng điện chuẩn trong hệ SI được đặt theo tên nhà vật lý nào?",
+                options: ["Isaac Newton", "James Watt", "André-Marie Ampère", "Alessandro Volta"],
+                correct: 2
             },
             {
-                question: "Câu 12: Đội Thiếu niên Tiền phong Hồ Chí Minh do tổ chức nào trực tiếp phụ trách và hướng dẫn?",
-                options: { a: "Bộ Giáo dục và Đào tạo", b: "Hội Khuyến học Việt Nam", c: "Đoàn Thanh niên Cộng sản Hồ Chí Minh", d: "Hội Liên hiệp Thanh niên Việt Nam" },
-                correct: "c"
+                question: "Trong âm nhạc cơ bản, một quãng tám (Octave) tiêu chuẩn từ nốt Đô đến nốt Đô kế tiếp bao gồm bao nhiêu phím đàn (tính cả phím trắng và phím đen)?",
+                options: ["7 phím", "8 phím", "12 phím", "10 phím"],
+                correct: 2
             }
         ];
 
-        let currentQuestions = [];
+        let quizData = [];
+        let currentIndex = 0;
+        let totalQuestions = 0;
+
+        function shuffleArray(array) {
+            const arr = [...array];
+            for (let i = arr.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [arr[i], arr[j]] = [arr[j], arr[i]];
+            }
+            return arr;
+        }
+
+        function prepareQuiz() {
+            const shuffledRaw = shuffleArray(rawQuestions);
+            quizData = shuffledRaw.map(item => {
+                const originalOptions = item.options;
+                const correctAnswerText = originalOptions[item.correct];
+                const shuffledOptions = shuffleArray(originalOptions);
+                const newCorrectIndex = shuffledOptions.indexOf(correctAnswerText);
+
+                return {
+                    question: item.question,
+                    options: shuffledOptions,
+                    correct: newCorrectIndex
+                };
+            });
+
+            currentIndex = 0;
+            totalQuestions = quizData.length;
+        }
 
         function startQuiz() {
-            currentQuestions = [...questions];
+            prepareQuiz();
             document.getElementById('result-container').classList.add('hidden');
             document.getElementById('quiz-container').classList.remove('hidden');
             loadQuestion();
         }
 
         function loadQuestion() {
-            if (currentQuestions.length === 0) {
+            if (currentIndex >= totalQuestions) {
                 showResult();
                 return;
             }
 
-            const q = currentQuestions[0];
+            const q = quizData[currentIndex];
             const questionEl = document.getElementById('question-text');
             const optionsEl = document.getElementById('options-container');
 
             questionEl.classList.remove('animate__fadeIn');
             void questionEl.offsetWidth; 
             questionEl.classList.add('animate__fadeIn');
-            questionEl.innerText = q.question;
+            questionEl.innerText = `Câu ${currentIndex + 1}: ${q.question}`;
 
             optionsEl.innerHTML = '';
-            for (const [key, value] of Object.entries(q.options)) {
+            const optionLabels = ['A', 'B', 'C', 'D'];
+
+            q.options.forEach((optText, idx) => {
                 const btn = document.createElement('button');
-                btn.className = "option-btn glass-btn w-full text-left p-5 md:p-6 rounded-2xl font-medium text-lg md:text-xl text-white drop-shadow transition-all duration-200 transform hover:scale-[1.01] active:scale-[0.99] shadow-sm animate__animated animate__fadeInUp";
-                btn.innerHTML = `<span class="font-bold uppercase mr-3 text-cyan-300 text-xl md:text-2xl">${key}.</span> ${value}`;
+                btn.className = "option-btn glass-btn w-full text-left p-4 md:p-5 rounded-2xl font-medium text-base md:text-lg text-white drop-shadow transition-all duration-200 transform hover:scale-[1.01] active:scale-[0.99] shadow-sm animate__animated animate__fadeInUp";
+                btn.style.animationDelay = `${idx * 0.05}s`;
+                btn.innerHTML = `<span class="font-bold uppercase mr-3 text-cyan-300 text-lg md:text-xl">${optionLabels[idx]}.</span> ${optText}`;
                 
                 btn.onclick = (e) => {
                     e.stopPropagation();
-                    selectAnswer(key, btn);
+                    const rect = btn.getBoundingClientRect();
+                    selectAnswer(idx, btn, rect.left + rect.width / 2, rect.top + rect.height / 2);
                 };
                 optionsEl.appendChild(btn);
-            }
+            });
         }
 
-        function selectAnswer(selectedKey, btnElement) {
-            const currentQ = currentQuestions[0];
+        function selectAnswer(selectedIndex, btnElement, btnX, btnY) {
+            const currentQ = quizData[currentIndex];
+            const allButtons = document.querySelectorAll('.option-btn');
 
-            if (selectedKey === currentQ.correct) {
-                btnElement.className = "option-btn w-full text-left p-5 md:p-6 rounded-2xl font-medium text-lg md:text-xl text-white shadow-sm bg-cyan-600/80 border-cyan-400 backdrop-blur-md animate__animated animate__pulse";
+            if (selectedIndex === currentQ.correct) {
+                sfx.playCorrect();
+                createFireworks(btnX, btnY);
+                btnElement.className = "option-btn w-full text-left p-4 md:p-5 rounded-2xl font-medium text-base md:text-lg text-white shadow-sm bg-cyan-600/80 border-cyan-400 backdrop-blur-md animate__animated animate__pulse";
 
-                const allButtons = document.querySelectorAll('.option-btn');
                 allButtons.forEach(btn => btn.disabled = true);
 
                 setTimeout(() => {
-                    currentQuestions.shift(); 
+                    currentIndex++;
                     loadQuestion();
-                }, 1000);
+                }, 900);
 
             } else {
-                btnElement.className = "option-btn w-full text-left p-5 md:p-6 rounded-2xl font-medium text-lg md:text-xl text-white shadow-sm bg-red-600/80 border-red-400 backdrop-blur-md animate__animated animate__shakeX";
-                btnElement.style.animationDuration = '0.9s';
+                sfx.playWrong();
+                btnElement.className = "option-btn w-full text-left p-4 md:p-5 rounded-2xl font-medium text-base md:text-lg text-white shadow-sm bg-red-600/80 border-red-400 backdrop-blur-md animate__animated animate__shakeX";
+                btnElement.style.animationDuration = '0.6s';
                 btnElement.disabled = true; 
             }
         }
 
         function showResult() {
+            sfx.playVictory();
+            createFireworks(window.innerWidth / 2, window.innerHeight / 2);
+
             document.getElementById('quiz-container').classList.add('hidden');
             const resultContainer = document.getElementById('result-container');
             resultContainer.classList.remove('hidden');
         }
 
         function restartQuiz() {
+            sfx.playClick();
             startQuiz();
         }
 
