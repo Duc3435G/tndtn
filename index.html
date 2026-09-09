@@ -172,11 +172,12 @@
 
     <script>
         /* =========================================================
-           1. WEB AUDIO API SYNTHESIZER
+           1. WEB AUDIO API SYNTHESIZER & AUDIO PLAYER
            ========================================================= */
         class SoundFX {
             constructor() {
                 this.ctx = null;
+                this.victoryAudio = new Audio('copy_F17DE83D-331D-4BFF-A041-C3BE7CC84FAB.mp3');
             }
             init() {
                 if (!this.ctx) {
@@ -235,24 +236,8 @@
                 });
             }
             playVictory() {
-                this.init();
-                const now = this.ctx.currentTime;
-                const notes = [
-                    { f: 523.25, t: 0 }, { f: 659.25, t: 0.12 }, { f: 783.99, t: 0.24 },
-                    { f: 1046.50, t: 0.36 }, { f: 880, t: 0.5 }, { f: 1046.50, t: 0.7 }
-                ];
-                notes.forEach(note => {
-                    const osc = this.ctx.createOscillator();
-                    const gain = this.ctx.createGain();
-                    osc.type = 'triangle';
-                    osc.frequency.setValueAtTime(note.f, now + note.t);
-                    gain.gain.setValueAtTime(0.25, now + note.t);
-                    gain.gain.exponentialRampToValueAtTime(0.001, now + note.t + 0.4);
-                    osc.connect(gain);
-                    gain.connect(this.ctx.destination);
-                    osc.start(now + note.t);
-                    osc.stop(now + note.t + 0.4);
-                });
+                this.victoryAudio.currentTime = 0;
+                this.victoryAudio.play().catch(err => console.log("Không thể phát âm thanh:", err));
             }
         }
         const sfx = new SoundFX();
